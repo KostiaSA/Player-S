@@ -50,6 +50,7 @@ import {getInstantPromise} from "./utils/getInstantPromise";
 import {stringAsSql, dateTimeAsSql} from "./sql/SqlCore";
 import {getValueFromSql, executeSql} from "./sql/MsSqlDb";
 import {replaceAll} from "./utils/replaceAll";
+import {loadUtf8FileFromUrl} from "./utils/loadUtf8FileFromUrl";
 
 function sqlDateToStr(date: Date): any {
     return replaceAll(date.toISOString().replace("Z", "").replace("T", " "), "-", "/").split(".")[0];
@@ -480,39 +481,49 @@ async function LOAD_INFO_handler(req: ILoadInfoReq): Promise<ILoadInfoAns> {
 }
 
 
-async function RELOAD_PLAYLIST_handler(req: IReloadPlayListReq): Promise<IReloadPlayListAns> {
+export async function RELOAD_PLAYLIST_handler(req: IReloadPlayListReq): Promise<IReloadPlayListAns> {
 
-    let sql = `
-  SELECT playListUrl FROM User WHERE login=${req.login} AND password=${req.password}  
-`;
-
-    let rows = await executeSql(sql);
+    let rows = await executeSql(`SELECT playListUrl FROM [User] WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}`);
     let row = rows[0][0];
+    if (!row) Promise.reject("RELOAD_PLAYLIST: invalid login/password");
     let playListUrl = row["playListUrl"];
 
+    try {
+        let playlist = await loadUtf8FileFromUrl(playListUrl);
+        let lines = playlist.split("\r\n");
+        let i = 1;
 
+        let sql: string[] = [];
+        sql.push("BEGIN TRAN");
+        sql.push(`DELETE FROM UserChannel WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}`);
 
-    //
-     let ansInfo: IInfo[] = [];
-    // for (let row of epgRows) {
-    //     ansInfo.push({
-    //         channelId: row["channelId"],
-    //         channelTitle: row["channelTitle"],
-    //         channelImage: row["channelImage"],
-    //         time: sqlDateToStr(row["time"]),
-    //         endtime: sqlDateToStr(row["endtime"]),
-    //         title: row["title"],
-    //         categoryTitle: row["categoryTitle"],
-    //         desc: row["desc"],
-    //         genreTitle: row["genreTitle"],
-    //         year: row["year"],
-    //         director: row["director"],
-    //         actors: row["actors"],
-    //         image: row["image"],
-    //     } as IInfo);
-    // }
+        while (i < lines.length) {
+            console.log(lines[i]);
+            let extinf=lines[i];
+            if (!extinf || !extinf.startsWith("#EXTINF"))
+                break;
+            i+=2;
+            let chUrl=lines[i];
+            console.log(chUrl);
+            if (!chUrl || !chUrl.startsWith("http"))
+                break;
+            let chName=extinf.split(",")[1];
+            i+=1;
 
-    return Promise.resolve({info: ansInfo[0]});
+            sql.push(`IF NOT EXISTS(SELECT 1 FROM UserChannel WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}  AND chName=${stringAsSql(chName)} )`);
+            sql.push(`INSERT UserChannel(login,password,chName,chUrl) VALUES(${stringAsSql(req.login)},${stringAsSql(req.password)},${stringAsSql(chName)},${stringAsSql(chUrl)})`);
+
+        }
+        sql.push("COMMIT");
+
+        await executeSql(sql.join("\n"));
+        return Promise.resolve({});
+        //console.log(sql.join("\n"));
+
+    }
+    catch (e) {
+        return Promise.reject(e.toString())
+    }
 
 }
 
