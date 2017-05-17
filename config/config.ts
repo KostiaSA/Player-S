@@ -17,8 +17,8 @@ let developHomeDir: IConfig = {
     sqlPassword: "sonyk",
     sqlDatabase: "EdemTV",
     port:3001,
-//    staticPath:"c:/--EdemPlayer--/S/static"
-    staticPath:"c:/--EdemPlayer--/a/www"
+    staticPath:"c:/--EdemPlayer--/S/static"
+//    staticPath:"c:/--EdemPlayer--/a/www"
 }
 
 // let cloudDir: IConfig = {

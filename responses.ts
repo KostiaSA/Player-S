@@ -43,7 +43,8 @@ import {
     ICheckPoint,
     ISaveCheckPointsAns,
     ISaveCheckPointsReq,
-    SAVE_CHECKPOINTS_CMD, LOAD_CURRENT_EPG, IEpg
+    SAVE_CHECKPOINTS_CMD, LOAD_CURRENT_EPG, IEpg, ILoadCurrentEpgReq, ILoadCurrentEpgAns, ILoadInfoReq, ILoadInfoAns,
+    IInfo, LOAD_INFO, RELOAD_PLAYLIST, IReloadPlayListReq, IReloadPlayListAns
 } from "./api/api";
 import {getInstantPromise} from "./utils/getInstantPromise";
 import {stringAsSql, dateTimeAsSql} from "./sql/SqlCore";
@@ -96,8 +97,16 @@ export function commonApiResponse(req: express.Request, res: express.Response, n
             ans = LOAD_CURRENT_EPG_handler(decryptedBody);
             break;
 
+        case LOAD_INFO:
+            ans = LOAD_INFO_handler(decryptedBody);
+            break;
+
+        case RELOAD_PLAYLIST:
+            ans = RELOAD_PLAYLIST_handler(decryptedBody);
+            break;
+
         default:
-            ans = getInstantPromise({error: "invalid api command"});
+            ans = getInstantPromise({error: "invalid player server api command"});
     }
 
     ans
@@ -405,10 +414,10 @@ SELECT master.sys.fn_varbintohexstr(max(DBTS)) dbts FROM ReplLog where ReplTable
 // }
 
 
-async function LOAD_CURRENT_EPG_handler(req: ILoadCheckPointsReq): Promise<ILoadCheckPointsAns> {
+async function LOAD_CURRENT_EPG_handler(req: ILoadCurrentEpgReq): Promise<ILoadCurrentEpgAns> {
 
     let sql = `
-  EXEC getCurrentEpg
+  EXEC getCurrentEpg ${stringAsSql(req.login)},${stringAsSql(req.password)}
 `;
 
     let rows = await executeSql(sql);
@@ -428,11 +437,85 @@ async function LOAD_CURRENT_EPG_handler(req: ILoadCheckPointsReq): Promise<ILoad
             desc: row["desc"],
             genreTitle: row["genreTitle"],
             year: row["year"],
-        });
+            director: row["director"],
+            actors: row["actors"],
+        } as IEpg);
     }
 
     return Promise.resolve({epg: ansEpg});
 
 }
+
+async function LOAD_INFO_handler(req: ILoadInfoReq): Promise<ILoadInfoAns> {
+
+    let sql = `
+  EXEC getInfo ${req.channelId}, ${stringAsSql(req.time)} 
+`;
+
+    let rows = await executeSql(sql);
+
+    let epgRows = rows[0];
+
+    let ansInfo: IInfo[] = [];
+    for (let row of epgRows) {
+        ansInfo.push({
+            channelId: row["channelId"],
+            channelTitle: row["channelTitle"],
+            channelImage: row["channelImage"],
+            time: sqlDateToStr(row["time"]),
+            endtime: sqlDateToStr(row["endtime"]),
+            title: row["title"],
+            categoryTitle: row["categoryTitle"],
+            desc: row["desc"],
+            genreTitle: row["genreTitle"],
+            year: row["year"],
+            director: row["director"],
+            actors: row["actors"],
+            image: row["image"],
+        } as IInfo);
+    }
+
+    return Promise.resolve({info: ansInfo[0]});
+
+}
+
+
+async function RELOAD_PLAYLIST_handler(req: IReloadPlayListReq): Promise<IReloadPlayListAns> {
+
+    let sql = `
+  SELECT playListUrl FROM User WHERE login=${req.login} AND password=${req.password}  
+`;
+
+    let rows = await executeSql(sql);
+    let row = rows[0][0];
+    let playListUrl = row["playListUrl"];
+
+
+
+    //
+     let ansInfo: IInfo[] = [];
+    // for (let row of epgRows) {
+    //     ansInfo.push({
+    //         channelId: row["channelId"],
+    //         channelTitle: row["channelTitle"],
+    //         channelImage: row["channelImage"],
+    //         time: sqlDateToStr(row["time"]),
+    //         endtime: sqlDateToStr(row["endtime"]),
+    //         title: row["title"],
+    //         categoryTitle: row["categoryTitle"],
+    //         desc: row["desc"],
+    //         genreTitle: row["genreTitle"],
+    //         year: row["year"],
+    //         director: row["director"],
+    //         actors: row["actors"],
+    //         image: row["image"],
+    //     } as IInfo);
+    // }
+
+    return Promise.resolve({info: ansInfo[0]});
+
+}
+
+
 
 

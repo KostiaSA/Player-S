@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "run": "tsc && node server.js",
-    "load": "node test/loadsql1.js"
+    "load": "node test/loadsql1.js",
+    "loadurl": "node test/loadurl.js"
   },
   "author": "",
   "license": "ISC",
