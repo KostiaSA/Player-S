@@ -418,7 +418,7 @@ SELECT master.sys.fn_varbintohexstr(max(DBTS)) dbts FROM ReplLog where ReplTable
 async function LOAD_CURRENT_EPG_handler(req: ILoadCurrentEpgReq): Promise<ILoadCurrentEpgAns> {
 
     let sql = `
-  EXEC getCurrentEpg ${stringAsSql(req.login)},${stringAsSql(req.password)}
+  EXEC getCurrentEpg ${stringAsSql(req.login)},${stringAsSql(req.password)},${stringAsSql(req.category)}
 `;
 
     let rows = await executeSql(sql);
@@ -431,8 +431,10 @@ async function LOAD_CURRENT_EPG_handler(req: ILoadCurrentEpgReq): Promise<ILoadC
             channelId: row["channelId"],
             channelTitle: row["channelTitle"],
             channelImage: row["channelImage"],
+            channelUrl: row["channelUrl"],
             time: sqlDateToStr(row["time"]),
             endtime: sqlDateToStr(row["endtime"]),
+            currtime: sqlDateToStr(row["currtime"]),
             title: row["title"],
             categoryTitle: row["categoryTitle"],
             desc: row["desc"],
@@ -465,6 +467,7 @@ async function LOAD_INFO_handler(req: ILoadInfoReq): Promise<ILoadInfoAns> {
             channelImage: row["channelImage"],
             time: sqlDateToStr(row["time"]),
             endtime: sqlDateToStr(row["endtime"]),
+            currtime: sqlDateToStr(row["currtime"]),
             title: row["title"],
             categoryTitle: row["categoryTitle"],
             desc: row["desc"],
@@ -502,16 +505,27 @@ export async function RELOAD_PLAYLIST_handler(req: IReloadPlayListReq): Promise<
             let extinf=lines[i];
             if (!extinf || !extinf.startsWith("#EXTINF"))
                 break;
-            i+=2;
+            i+=1;
+
+            console.log(lines[i]);
+            let extgr=lines[i];
+            if (!extgr || !extgr.startsWith("#EXTGRP"))
+                break;
+            i+=1;
+
             let chUrl=lines[i];
             console.log(chUrl);
             if (!chUrl || !chUrl.startsWith("http"))
                 break;
-            let chName=extinf.split(",")[1];
             i+=1;
 
+            let chName=extinf.split(",")[1];
+            let chCategory=extgr.split(":")[1];
+            if (chCategory.startsWith("дру"))
+                chCategory="прочие";
+
             sql.push(`IF NOT EXISTS(SELECT 1 FROM UserChannel WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}  AND chName=${stringAsSql(chName)} )`);
-            sql.push(`INSERT UserChannel(login,password,chName,chUrl) VALUES(${stringAsSql(req.login)},${stringAsSql(req.password)},${stringAsSql(chName)},${stringAsSql(chUrl)})`);
+            sql.push(`INSERT UserChannel(login,password,chName,chUrl,chCategory) VALUES(${stringAsSql(req.login)},${stringAsSql(req.password)},${stringAsSql(chName)},${stringAsSql(chUrl)},${stringAsSql(chCategory)})`);
 
         }
         sql.push("COMMIT");
