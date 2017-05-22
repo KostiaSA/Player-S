@@ -211,6 +211,7 @@ export interface IEpg {
     year: string;
     director: string;
     actors: string;
+    image: string;
 }
 
 
@@ -263,4 +264,16 @@ export interface IReloadPlayListReq extends IReq {
 }
 
 export interface IReloadPlayListAns extends IAns {
+}
+
+export const LOAD_ARCH_EPG = "104";
+
+export interface ILoadArchEpgReq extends IReq {
+    login: string;
+    password: string;
+    channelId:number;
+}
+
+export interface ILoadArchEpgAns extends IAns {
+    epg: IEpg[];
 }

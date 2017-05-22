@@ -44,7 +44,8 @@ import {
     ISaveCheckPointsAns,
     ISaveCheckPointsReq,
     SAVE_CHECKPOINTS_CMD, LOAD_CURRENT_EPG, IEpg, ILoadCurrentEpgReq, ILoadCurrentEpgAns, ILoadInfoReq, ILoadInfoAns,
-    IInfo, LOAD_INFO, RELOAD_PLAYLIST, IReloadPlayListReq, IReloadPlayListAns
+    IInfo, LOAD_INFO, RELOAD_PLAYLIST, IReloadPlayListReq, IReloadPlayListAns, LOAD_ARCH_EPG, ILoadArchEpgAns,
+    ILoadArchEpgReq
 } from "./api/api";
 import {getInstantPromise} from "./utils/getInstantPromise";
 import {stringAsSql, dateTimeAsSql} from "./sql/SqlCore";
@@ -104,6 +105,10 @@ export function commonApiResponse(req: express.Request, res: express.Response, n
 
         case RELOAD_PLAYLIST:
             ans = RELOAD_PLAYLIST_handler(decryptedBody);
+            break;
+
+        case LOAD_ARCH_EPG:
+            ans = LOAD_ARCH_EPG_handler(decryptedBody);
             break;
 
         default:
@@ -442,6 +447,7 @@ async function LOAD_CURRENT_EPG_handler(req: ILoadCurrentEpgReq): Promise<ILoadC
             year: row["year"],
             director: row["director"],
             actors: row["actors"],
+            image: row["image"],
         } as IEpg);
     }
 
@@ -542,5 +548,39 @@ export async function RELOAD_PLAYLIST_handler(req: IReloadPlayListReq): Promise<
 }
 
 
+async function LOAD_ARCH_EPG_handler(req: ILoadArchEpgReq): Promise<ILoadArchEpgAns> {
+
+    let sql = `
+  EXEC getArchEpg ${stringAsSql(req.login)},${stringAsSql(req.password)},${req.channelId}
+`;
+
+    let rows = await executeSql(sql);
+
+    let epgRows = rows[0];
+
+    let ansEpg: IEpg[] = [];
+    for (let row of epgRows) {
+        ansEpg.push({
+            channelId: row["channelId"],
+            channelTitle: row["channelTitle"],
+            channelImage: row["channelImage"],
+            channelUrl: row["channelUrl"],
+            time: sqlDateToStr(row["time"]),
+            endtime: sqlDateToStr(row["endtime"]),
+            currtime: sqlDateToStr(row["currtime"]),
+            title: row["title"],
+            categoryTitle: row["categoryTitle"],
+            desc: row["desc"],
+            genreTitle: row["genreTitle"],
+            year: row["year"],
+            director: row["director"],
+            actors: row["actors"],
+            image: row["image"],
+        } as IEpg);
+    }
+
+    return Promise.resolve({epg: ansEpg});
+
+}
 
 
