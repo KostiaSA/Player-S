@@ -34,4 +34,4 @@ let cloudDir: IConfig = {
 
 
 export let config :IConfig = developHomeDir;
-//изменено 888
+//изменено 888-999
