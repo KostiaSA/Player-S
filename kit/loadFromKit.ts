@@ -117,8 +117,102 @@ export async function executeAll(sql: string[]) {
     }
 }
 
+
+export async function loadPersons(): Promise<void> {
+
+    return new Promise<void>(
+        (resolve: () => void, reject: (error: string) => void) => {
+
+            let sql: string[] = [];
+
+            db.each("SELECT * FROM person", function (err: any, row: any) {
+
+                sql.push(`IF NOT EXISTS(SELECT 1 FROM person WHERE id=${row.id}) INSERT person (id) VALUES(${row.id});`);
+                sql.push(`
+UPDATE person SET
+  value=${stringAsSql(row.value)} 
+WHERE id=${row.id}
+`);
+                //console.log(row);
+
+            }, () => {
+
+                //console.log(sql.join("\n"));
+                executeSql(sql.join("\n")).then(() => {
+                    console.log("Загрузка Persons Ok");
+                    resolve();
+                });
+            });
+
+        });
+
+}
+
+export async function loadGenres(): Promise<void> {
+
+    return new Promise<void>(
+        (resolve: () => void, reject: (error: string) => void) => {
+
+            let sql: string[] = [];
+
+            db.each("SELECT * FROM Genre", function (err: any, row: any) {
+
+                sql.push(`IF NOT EXISTS(SELECT 1 FROM Genre WHERE id=${row.id}) INSERT Genre (id) VALUES(${row.id});`);
+                sql.push(`
+UPDATE Genre SET
+  value=${stringAsSql(row.value)} 
+WHERE id=${row.id}
+`);
+                //console.log(row);
+
+            }, () => {
+
+                //console.log(sql.join("\n"));
+                executeSql(sql.join("\n")).then(() => {
+                    console.log("Загрузка Genres Ok");
+                    resolve();
+                });
+            });
+
+        });
+
+}
+
+export async function loadLists(): Promise<void> {
+
+    return new Promise<void>(
+        (resolve: () => void, reject: (error: string) => void) => {
+
+            let sql: string[] = [];
+
+            db.each("SELECT * FROM List", function (err: any, row: any) {
+
+                sql.push(`IF NOT EXISTS(SELECT 1 FROM List WHERE id=${row.id}) INSERT List (id) VALUES(${row.id});`);
+                sql.push(`
+UPDATE List SET
+  value=${stringAsSql(row.value)} 
+WHERE id=${row.id}
+`);
+                //console.log(row);
+
+            }, () => {
+
+                //console.log(sql.join("\n"));
+                executeSql(sql.join("\n")).then(() => {
+                    console.log("Загрузка Lists Ok");
+                    resolve();
+                });
+            });
+
+        });
+
+}
+
 export async function loadFromKit(): Promise<void> {
-    //await loadChannels();
+    await loadChannels();
+    await loadPersons();
+    await loadGenres();
+    await loadLists();
     await loadData();
 }
 
