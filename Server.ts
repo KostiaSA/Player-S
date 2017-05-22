@@ -9,6 +9,7 @@ import {importFrom1cResponse} from "./1c/importFrom1c";
 import {config} from "./config/config";
 import {tabloResponse} from "./tablo/tablo";
 import {exportTo1cResponse} from "./1c/exportTo1c";
+import {executeSql} from "./sql/MsSqlDb";
 
 // Modular Route definitions
 //import * as exampleRoute from "./routes/example";
@@ -57,9 +58,20 @@ app.use((req: express.Request, res: express.Response, next: Function) => {
 
 app.set("port", config.port);
 
-app.listen(app.get("port"), () => {
-    console.log("Express server listening on port " + config.port);
-}).on("error", err => {
-    console.log("Cannot start server, port most likely in use");
-    console.log(err);
-});
+console.log("sql server: " + config.sqlServerAddress);
+
+executeSql("SELECT count(*) FROM channel")
+    .then(() => {
+        console.log("sql connect Ok");
+        app.listen(app.get("port"), () => {
+            console.log("Express server listening on port " + config.port);
+        }).on("error", err => {
+            console.log("Cannot start server, port most likely in use");
+            console.log(err);
+        });
+
+    })
+    .catch((e) => {
+        console.error(e);
+    });
+
