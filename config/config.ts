@@ -10,7 +10,7 @@ export interface IConfig {
 }
 
 let developHomeDir: IConfig = {
-    sqlServerAddress: "CAR",
+    sqlServerAddress: "81.177.142.4",
     sqlServerInstance: "",
     sqlServerPort: 1433,
     sqlLogin: "sa",
@@ -21,16 +21,17 @@ let developHomeDir: IConfig = {
 //    staticPath:"c:/--EdemPlayer--/a/www"
 }
 
-// let cloudDir: IConfig = {
-//     sqlServerAddress: "online.bajarussia.xxx",
-//     sqlServerInstance: "",
-//     sqlServerPort: 1433,
-//     sqlLogin: "sa",
-//     sqlPassword: "12KloP09",
-//     sqlDatabase: "Rally",
-//     port:3001,
-//     staticPath:"c:/rally/a/www"
-// }
+let cloudDir: IConfig = {
+    sqlServerAddress: "127.0.0.1",
+    sqlServerInstance: "",
+    sqlServerPort: 1433,
+    sqlLogin: "sa",
+    sqlPassword: "sonyk",
+    sqlDatabase: "EdemTV",
+    port:80,
+    staticPath:"c:/--EdemPlayer--/S/static"
+}
 
 
 export let config :IConfig = developHomeDir;
+//изменено 888

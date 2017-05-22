@@ -214,6 +214,7 @@ export async function loadFromKit(): Promise<void> {
     await loadGenres();
     await loadLists();
     await loadData();
+    await executeSql("EXEC [fill_endtime]");
 }
 
 

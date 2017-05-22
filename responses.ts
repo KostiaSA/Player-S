@@ -423,7 +423,7 @@ SELECT master.sys.fn_varbintohexstr(max(DBTS)) dbts FROM ReplLog where ReplTable
 async function LOAD_CURRENT_EPG_handler(req: ILoadCurrentEpgReq): Promise<ILoadCurrentEpgAns> {
 
     let sql = `
-  EXEC getCurrentEpg ${stringAsSql(req.login)},${stringAsSql(req.password)},${stringAsSql(req.category)}
+  EXEC getCurrentEpgNew ${stringAsSql(req.login)},${stringAsSql(req.password)},${stringAsSql(req.category)}
 `;
 
     let rows = await executeSql(sql);
