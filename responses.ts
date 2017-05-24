@@ -448,7 +448,7 @@ async function LOAD_CURRENT_EPG_handler(req: ILoadCurrentEpgReq): Promise<ILoadC
             director: row["director"],
             actors: row["actors"],
             image: row["image"],
-            provider: row["provider"],
+            epgProvider: row["provider"],
         } as IEpg);
     }
 
@@ -483,7 +483,7 @@ async function LOAD_INFO_handler(req: ILoadInfoReq): Promise<ILoadInfoAns> {
             director: row["director"],
             actors: row["actors"],
             image: row["image"],
-            provider: row["provider"],
+            epgProvider: row["provider"],
         } as IInfo);
     }
 
@@ -578,7 +578,7 @@ async function LOAD_ARCH_EPG_handler(req: ILoadArchEpgReq): Promise<ILoadArchEpg
             director: row["director"],
             actors: row["actors"],
             image: row["image"],
-            provider: row["provider"],
+            epgProvider: row["provider"],
 
         } as IEpg);
     }
