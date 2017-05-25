@@ -45,13 +45,14 @@ import {
     ISaveCheckPointsReq,
     SAVE_CHECKPOINTS_CMD, LOAD_CURRENT_EPG, IEpg, ILoadCurrentEpgReq, ILoadCurrentEpgAns, ILoadInfoReq, ILoadInfoAns,
     IInfo, LOAD_INFO, RELOAD_PLAYLIST, IReloadPlayListReq, IReloadPlayListAns, LOAD_ARCH_EPG, ILoadArchEpgAns,
-    ILoadArchEpgReq
+    ILoadArchEpgReq, GET_PLAYLIST, SET_PLAYLIST, IGetPlayListReq, IGetPlayListAns, ISetPlayListAns, ISetPlayListReq
 } from "./api/api";
 import {getInstantPromise} from "./utils/getInstantPromise";
 import {stringAsSql, dateTimeAsSql} from "./sql/SqlCore";
 import {getValueFromSql, executeSql} from "./sql/MsSqlDb";
 import {replaceAll} from "./utils/replaceAll";
 import {loadUtf8FileFromUrl} from "./utils/loadUtf8FileFromUrl";
+import {throws} from "assert";
 
 function sqlDateToStr(date: Date): any {
     return replaceAll(date.toISOString().replace("Z", "").replace("T", " "), "-", "/").split(".")[0];
@@ -111,6 +112,14 @@ export function commonApiResponse(req: express.Request, res: express.Response, n
             ans = LOAD_ARCH_EPG_handler(decryptedBody);
             break;
 
+        case GET_PLAYLIST:
+            ans = GET_PLAYLIST_handler(decryptedBody);
+            break;
+
+        case SET_PLAYLIST:
+            ans = SET_PLAYLIST_handler(decryptedBody);
+            break;
+
         default:
             ans = getInstantPromise({error: "invalid player server api command"});
     }
@@ -141,9 +150,9 @@ async function LOGIN_handler(req: ILoginReq): Promise<ILoginAns> {
     // let fio = await getValueFromSql(sql2, "FIO");
     //
     if (req.password === pass)
-         return getInstantPromise({user: req.login});
-     else
-         return getInstantPromise({error: BAD_LOGIN_PASSWORD, user: ""});
+        return getInstantPromise({user: req.login});
+    else
+        return getInstantPromise({error: BAD_LOGIN_PASSWORD, user: ""});
 
 }
 
@@ -496,12 +505,14 @@ export async function RELOAD_PLAYLIST_handler(req: IReloadPlayListReq): Promise<
 
     let rows = await executeSql(`SELECT playListUrl FROM [User] WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}`);
     let row = rows[0][0];
-    if (!row) Promise.reject("RELOAD_PLAYLIST: invalid login/password");
+    if (!row) throw "RELOAD_PLAYLIST: invalid login/password";
     let playListUrl = row["playListUrl"];
 
     try {
         let playlist = await loadUtf8FileFromUrl(playListUrl);
         let lines = playlist.split("\r\n");
+        if (lines.length < 10)
+            throw "неверная ссылка на плейлист";
         let i = 1;
 
         let sql: string[] = [];
@@ -510,27 +521,27 @@ export async function RELOAD_PLAYLIST_handler(req: IReloadPlayListReq): Promise<
 
         while (i < lines.length) {
             console.log(lines[i]);
-            let extinf=lines[i];
+            let extinf = lines[i];
             if (!extinf || !extinf.startsWith("#EXTINF"))
                 break;
-            i+=1;
+            i += 1;
 
             console.log(lines[i]);
-            let extgr=lines[i];
+            let extgr = lines[i];
             if (!extgr || !extgr.startsWith("#EXTGRP"))
                 break;
-            i+=1;
+            i += 1;
 
-            let chUrl=lines[i];
+            let chUrl = lines[i];
             console.log(chUrl);
             if (!chUrl || !chUrl.startsWith("http"))
                 break;
-            i+=1;
+            i += 1;
 
-            let chName=extinf.split(",")[1];
-            let chCategory=extgr.split(":")[1];
+            let chName = extinf.split(",")[1];
+            let chCategory = extgr.split(":")[1];
             if (chCategory.startsWith("дру"))
-                chCategory="прочие";
+                chCategory = "прочие";
 
             sql.push(`IF NOT EXISTS(SELECT 1 FROM UserChannel WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}  AND chName=${stringAsSql(chName)} )`);
             sql.push(`INSERT UserChannel(login,password,chName,chUrl,chCategory) VALUES(${stringAsSql(req.login)},${stringAsSql(req.password)},${stringAsSql(chName)},${stringAsSql(chUrl)},${stringAsSql(chCategory)})`);
@@ -587,4 +598,26 @@ async function LOAD_ARCH_EPG_handler(req: ILoadArchEpgReq): Promise<ILoadArchEpg
 
 }
 
+async function GET_PLAYLIST_handler(req: IGetPlayListReq): Promise<IGetPlayListAns> {
+
+    let rows = await executeSql(`SELECT playListUrl FROM [User] WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}`);
+    let row = rows[0][0];
+    if (!row) Promise.reject("GET_PLAYLIST: invalid login/password");
+    let playListUrl = row["playListUrl"];
+    return Promise.resolve({playList: playListUrl});
+
+}
+
+async function SET_PLAYLIST_handler(req: ISetPlayListReq): Promise<ISetPlayListAns> {
+    await executeSql(`UPDATE [User] SET playListUrl=${stringAsSql(req.playList)}  WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}`);
+    return RELOAD_PLAYLIST_handler(req);
+
+
+    // let rows = await executeSql(`SELECT playListUrl FROM [User] WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}`);
+    // let row = rows[0][0];
+    // if (!row) Promise.reject("GET_PLAYLIST: invalid login/password");
+    // let playListUrl = row["playListUrl"];
+    // return Promise.resolve({playList: playListUrl});
+
+}
 
