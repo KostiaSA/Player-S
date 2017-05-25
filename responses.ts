@@ -132,18 +132,18 @@ function getEncryptKeyFromSessionId(sessionId: string): string {
 
 async function LOGIN_handler(req: ILoginReq): Promise<ILoginAns> {
 
-    return getInstantPromise({user: "mibox"});
+    //return getInstantPromise({user: "mibox"});
 
-    // let sql = `SELECT ISNULL((SELECT [Password] FROM _Users WHERE [Login]=${stringAsSql(req.login)}),'ujfgff74hdr4wio3645hfdt') Password`;
+    let sql = `SELECT ISNULL((SELECT [Password] FROM [User] WHERE [Login]=${stringAsSql(req.login)}),'ujfgff74hdr4wio3645hfdt') Password`;
     // let sql2 = `SELECT ISNULL((SELECT FIO FROM _Users WHERE [Login]=${stringAsSql(req.login)}),'') FIO`;
     //
-    // let pass = await getValueFromSql(sql, "Password");
+    let pass = await getValueFromSql(sql, "Password");
     // let fio = await getValueFromSql(sql2, "FIO");
     //
-    // if (req.password === pass)
-    //     return getInstantPromise({user: fio});
-    // else
-    //     return getInstantPromise({error: BAD_LOGIN_PASSWORD, user: ""});
+    if (req.password === pass)
+         return getInstantPromise({user: req.login});
+     else
+         return getInstantPromise({error: BAD_LOGIN_PASSWORD, user: ""});
 
 }
 

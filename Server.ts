@@ -31,8 +31,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(config.staticPath)); //serve public files
+console.log("staticPath: " + config.staticPath);
 
-console.log(__dirname);
+//console.log(__dirname);
 // Register routes (as middleware layer through express.Router())
 //app.use(exampleRoute);
 
@@ -42,9 +43,9 @@ console.log(__dirname);
 // });
 
 app.post('/api', commonApiResponse);
-app.post('/api/export', importFrom1cResponse);
-app.post('/api/import', exportTo1cResponse);
-app.get('/tablo', tabloResponse);
+// app.post('/api/export', importFrom1cResponse);
+// app.post('/api/import', exportTo1cResponse);
+// app.get('/tablo', tabloResponse);
 
 
 // catch 404 and forward to error handler

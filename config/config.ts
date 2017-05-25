@@ -32,6 +32,17 @@ let cloudDir: IConfig = {
     staticPath:"c:/--EdemPlayer--/S/static"
 }
 
+let developerWebDir: IConfig = {
+    sqlServerAddress: "81.177.142.4",
+    sqlServerInstance: "",
+    sqlServerPort: 1433,
+    sqlLogin: "sa",
+    sqlPassword: "sonyk",
+    sqlDatabase: "EdemTV",
+    port:3001,
+    staticPath:"c:/--EdemPlayer--/W/www"
+}
 
-export let config :IConfig = developHomeDir;
+
+export let config :IConfig = developerWebDir;
 //изменено 888-999
