@@ -45,7 +45,8 @@ import {
     ISaveCheckPointsReq,
     SAVE_CHECKPOINTS_CMD, LOAD_CURRENT_EPG, IEpg, ILoadCurrentEpgReq, ILoadCurrentEpgAns, ILoadInfoReq, ILoadInfoAns,
     IInfo, LOAD_INFO, RELOAD_PLAYLIST, IReloadPlayListReq, IReloadPlayListAns, LOAD_ARCH_EPG, ILoadArchEpgAns,
-    ILoadArchEpgReq, GET_PLAYLIST, SET_PLAYLIST, IGetPlayListReq, IGetPlayListAns, ISetPlayListAns, ISetPlayListReq
+    ILoadArchEpgReq, GET_PLAYLIST, SET_PLAYLIST, IGetPlayListReq, IGetPlayListAns, ISetPlayListAns, ISetPlayListReq,
+    REGISTER_CMD, IRegisterReq, IRegisterAns
 } from "./api/api";
 import {getInstantPromise} from "./utils/getInstantPromise";
 import {stringAsSql, dateTimeAsSql} from "./sql/SqlCore";
@@ -118,6 +119,10 @@ export function commonApiResponse(req: express.Request, res: express.Response, n
 
         case SET_PLAYLIST:
             ans = SET_PLAYLIST_handler(decryptedBody);
+            break;
+
+        case REGISTER_CMD:
+            ans = REGISTER_handler(decryptedBody);
             break;
 
         default:
@@ -435,7 +440,10 @@ async function LOAD_CURRENT_EPG_handler(req: ILoadCurrentEpgReq): Promise<ILoadC
   EXEC getCurrentEpgNew ${stringAsSql(req.login)},${stringAsSql(req.password)},${stringAsSql(req.category)}
 `;
 
+    console.log("LOAD_CURRENT_EPG SQL",sql);
+    console.time("LOAD_CURRENT_EPG SQL");
     let rows = await executeSql(sql);
+    console.timeEnd("LOAD_CURRENT_EPG SQL");
 
     let epgRows = rows[0];
 
@@ -618,6 +626,12 @@ async function SET_PLAYLIST_handler(req: ISetPlayListReq): Promise<ISetPlayListA
     // if (!row) Promise.reject("GET_PLAYLIST: invalid login/password");
     // let playListUrl = row["playListUrl"];
     // return Promise.resolve({playList: playListUrl});
+
+}
+
+async function REGISTER_handler(req: IRegisterReq): Promise<IRegisterAns> {
+    return executeSql(`INSERT [User]([login],[password]) VALUES(${stringAsSql(req.login)},${stringAsSql(req.password)})`);
+    // SET playListUrl=${stringAsSql(req.playList)}  WHERE login=${stringAsSql(req.login)} AND password=${stringAsSql(req.password)}`);
 
 }
 

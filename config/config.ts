@@ -21,7 +21,7 @@ let developHomeDir: IConfig = {
 //    staticPath:"c:/--EdemPlayer--/a/www"
 }
 
-let cloudDir: IConfig = {
+let cloudW: IConfig = {
     sqlServerAddress: "127.0.0.1",
     sqlServerInstance: "",
     sqlServerPort: 1433,
@@ -29,11 +29,11 @@ let cloudDir: IConfig = {
     sqlPassword: "sonyk",
     sqlDatabase: "EdemTV",
     port:80,
-    staticPath:"c:/--EdemPlayer--/S/static"
+    staticPath:"c:/--EdemPlayer--/W/www"
 }
 
-let developerWebDir: IConfig = {
-    sqlServerAddress: "81.177.142.4",
+let dirW: IConfig = {
+    sqlServerAddress: "player.buhta.ru",
     sqlServerInstance: "",
     sqlServerPort: 1433,
     sqlLogin: "sa",
@@ -43,6 +43,17 @@ let developerWebDir: IConfig = {
     staticPath:"c:/--EdemPlayer--/W/www"
 }
 
+let dirA: IConfig = {
+    sqlServerAddress: "player.buhta.ru",
+    sqlServerInstance: "",
+    sqlServerPort: 1433,
+    sqlLogin: "sa",
+    sqlPassword: "sonyk",
+    sqlDatabase: "EdemTV",
+    port:3001,
+    staticPath:"c:/--EdemPlayer--/A/www"
+}
 
-export let config :IConfig = developerWebDir;
+
+export let config :IConfig = dirA;
 //изменено 888-999

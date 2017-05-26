@@ -301,3 +301,14 @@ export interface ISetPlayListReq extends IReq {
 
 export interface ISetPlayListAns extends IAns {
 }
+
+
+export const REGISTER_CMD = "107";
+
+export interface IRegisterReq extends IReq {
+    login: string;
+    password: string;
+}
+
+export interface IRegisterAns extends IAns {
+}
