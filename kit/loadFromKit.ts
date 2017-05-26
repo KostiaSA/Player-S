@@ -1,7 +1,7 @@
 import {dateTimeAsSql, stringAsSql} from "../sql/SqlCore";
 import {executeSql} from "../sql/MsSqlDb";
 var sqlite3 = require("sqlite3").verbose();
-var db = new sqlite3.Database("C:/--EdemPlayer--/S/static/KIT/epg.db");
+var db = new sqlite3.Database("C:/--EdemPlayer--/w/www/KIT/epg.db");
 
 export async function loadChannels(): Promise<void> {
 
